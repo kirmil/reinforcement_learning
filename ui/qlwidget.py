@@ -1,6 +1,4 @@
-from PyQt5.QtWidgets import QOpenGLWidget
 import numpy as np
-from PyQt5.QtGui import QOpenGLBuffer, QOpenGLVertexArrayObject, QOpenGLShaderProgram
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QOpenGLWidget
 from PyQt5.QtGui import QOpenGLBuffer, QOpenGLVertexArrayObject, QOpenGLShaderProgram
@@ -8,26 +6,23 @@ from PyQt5.QtCore import Qt
 from OpenGL.GL import *
 import sys
 import numpy as np  
-import qlwidget
 import OBJ_loader 
 
 class OpenGLWidget(QOpenGLWidget):
-    def __init__(self, parent=None):
+    def __init__(self,parent=None):
         super(OpenGLWidget, self).__init__(parent)
-        self.zoom = -5.0  # Initial zoom (distance from the screen)
+        self.zoom = -15.0  # Initial zoom (distance from the screen)
         self.last_mouse_position = None  # For rotation tracking
         self.x_rotation = 0.0  # Rotation around the x-axis
         self.y_rotation = 0.0  # Rotation around the y-axis
         #self.object_vertices, self.object_indices = load_obj('reinforcement_learning/test.obj')
-        self.component_1 = OBJ_loader.component("reinforcement_learning/test.obj")
+        self.component_1 = OBJ_loader.component("ui/test.obj")
         self.components = [self.component_1]
+        self.component_manager = OBJ_loader.component_manager()
         self.vao = QOpenGLVertexArrayObject()  # Initialize VAO
         self.vbo = QOpenGLBuffer(QOpenGLBuffer.VertexBuffer)  # Initialize VBO
         self.ebo = QOpenGLBuffer(QOpenGLBuffer.IndexBuffer)  # Initialize EBO (Index Buffer)
-        self.current_VBO_size = None
-        self.current_EBO_size = None
-        self.current_new_vertex_offset = 0
-        self.current_new_index_offset = 0
+
         
     def initializeGL(self):
         print("Initializing OpenGL...")  
@@ -58,7 +53,7 @@ class OpenGLWidget(QOpenGLWidget):
                     body.vao.release()
                     body.vbo.release()
                     body.ebo.release()
-
+                
             # Initialize VAO
             self.vao.create()
             self.vao.bind()
@@ -68,19 +63,19 @@ class OpenGLWidget(QOpenGLWidget):
             self.vbo.bind()
 
             # Allocate and fill VBO with vertex data
-            vertex_data_size = self.component_1.bodies[0].get_vertices().nbytes  # Get size of the vertex data in bytes
+            """vertex_data_size = self.component_1.bodies[0].get_vertices().nbytes  # Get size of the vertex data in bytes
             self.current_VBO_size = vertex_data_size*10+(vertex_data_size*10) % 512
             self.vbo.allocate(self.current_VBO_size)
-
+            """
             # Initialize EBO
             self.ebo.create()
             self.ebo.bind()
 
-            # Allocate and fill EBO with index data
+            """# Allocate and fill EBO with index data
             index_data_size = self.component_1.bodies[0].get_indices().nbytes  # Get size of the index data in bytes
             self.current_EBO_size = index_data_size*10+(index_data_size*10) % 512
             self.ebo.allocate(self.current_EBO_size)
-
+            """
             # Enable vertex attributes (position)
             glEnableClientState(GL_VERTEX_ARRAY)
             glVertexPointer(3, GL_FLOAT, 0, None)
@@ -116,12 +111,25 @@ class OpenGLWidget(QOpenGLWidget):
         glTranslatef(0.0, 0.0, self.zoom)  # Move into the screen based on zoom
         glRotatef(self.x_rotation, 1.0, 0.0, 0.0)  # Rotate around the x-axis
         glRotatef(self.y_rotation, 0.0, 1.0, 0.0)  # Rotate around the y-axis
-
-        for component in self.components:
+        
+        """for component in self.components:
             for body in component.bodies:
                 body.vao.bind()
                 glDrawElements(GL_TRIANGLES,len(body.get_indices()),GL_UNSIGNED_INT,None)
-                body.vao.release()
+                body.vao.release()"""
+        
+        if self.component_manager != None:
+            print(f"currently showing {len(self.component_manager.components)} numer of components")
+            if len(self.component_manager.components) != 0: 
+                for component in self.component_manager.components:
+                    if component.isVisable():
+                        for body in component.bodies:
+                            if body.isVisable():
+                                print(f"Drawing body {body.name}")
+
+                                body.vao.bind()
+                                glDrawElements(GL_TRIANGLES,len(body.get_indices()),GL_UNSIGNED_INT,None)
+                                body.vao.release()
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y() / 120
@@ -150,24 +158,38 @@ class OpenGLWidget(QOpenGLWidget):
     def draw_grid(self):
         pass
 
-    def add_body(self):
+    def show(self,body):
+        self.update()
+        body.vao.bind()
+        glDrawElements(GL_TRIANGLES,len(body.get_indices()),GL_UNSIGNED_INT,None)
+        body.vao.release()
+
+        print(f"Showing body: {body.name}")
         
-        self.vao.bind()
-        
-        self.vbo.bind()
-        self.vbo.allocate()
+    def init_vbo_for_body(self,body):
+        body.vao.create()
+        body.vao.bind()
 
-        self.ebo.bind()
-        self.ebo.allocate()
+        body.vbo.create()
+        body.vbo.bind()
+        body.vbo.allocate(body.get_vertices().nbytes)
+        body.vbo.allocate(body.get_vertices(),body.get_vertices().nbytes)
+        #self.vbo.write(0,self.get_vertices(),self.get_vertices.nbytes)
 
-        self.vao.release()
-        self.vbo.release()
-        self.ebo.release()
+        body.ebo.create()
+        body.ebo.bind()
+        body.ebo.allocate(body.get_indices(),body.get_indices().nbytes)
+        #self.ebo.write(0,self.get_indices())
 
-        self.uppdate()
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glVertexPointer(3,GL_FLOAT,0,None)
+
+        body.vao.release()
+        body.vbo.release()
+        body.ebo.release()
+
+        print(f"VBO initialized for body {body.name}")
 
     def uppdate_body(self):
-        pass
 
-    def uppdate_vbo(self):
         pass

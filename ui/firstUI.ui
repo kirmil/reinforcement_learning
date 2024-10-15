@@ -24,6 +24,32 @@
      </rect>
     </property>
    </widget>
+   <widget class="QCheckBox" name="checkBox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>121</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Show body</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>101</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>box2</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -38,10 +64,29 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionLoad_object"/>
+    <addaction name="actionnogot"/>
+    <addaction name="separator"/>
+    <addaction name="action222"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoad_object">
+   <property name="text">
+    <string>Load object</string>
+   </property>
+  </action>
+  <action name="actionnogot">
+   <property name="text">
+    <string>nogot</string>
+   </property>
+  </action>
+  <action name="action222">
+   <property name="text">
+    <string>222</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

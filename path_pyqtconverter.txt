@@ -1,0 +1,1 @@
+"C:\users\emils\anaconda3\Scripts\pyuic5.exe"

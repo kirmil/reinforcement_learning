@@ -1,18 +1,43 @@
 import numpy as np
 from PyQt5.QtGui import QOpenGLBuffer, QOpenGLVertexArrayObject, QOpenGLShaderProgram
+from OpenGL.GL import *
+from singelton import singleton
+
+from typing import Callable
+from ev_manager import Event
+
+
+
+@singleton
+class component_manager:
+
+    def __init__(self,renderer):
+        self.components = []
+        self.renderer = renderer
+        self.events = {}
+
+    def load_component(self,filepath):
+        temp_component = component(filepath)
+        self.components.append(temp_component)
+        self.init_vbo(temp_component)
+    
+    def init_vbo(self,temp_component):
+        for body in temp_component.bodies:
+            print(f"initiating vbo for body {body.name}")
+            self.renderer.init_vbo_for_body(body)
+
 class component:
     def __init__(self,filepath):
         self.mass = None
         self.COM = []
         self.bodies = []
         self.filepath = filepath
-        self.componentName = filepath.split("/")[-1].split(".")[0]
-        self.load_bodies(filepath)
+        self.componentName = self.filepath.split("/")[-1].split(".")[0]
+        self.load_bodies(self.filepath)
         self.volume = None
         self.enable = True
-
+        
     def load_bodies(self,filepath):
-
         vertices = []
         indices = []
         bodyname = None
@@ -44,12 +69,15 @@ class component:
                 self.bodies.append(OBJ_body(body_name=bodyname,
                                             vertices=np.array(vertices, dtype=np.float32),
                                             indices=np.array(indices, dtype=np.uint32)))
-
+                
     def calculate_center_of_mass(self):
         pass
 
     def calculate_mass(self):
         pass
+
+    def isVisable(self):
+        return self.enable
 
 class OBJ_body:
     def __init__(self,vertices,body_name,indices):
@@ -67,6 +95,7 @@ class OBJ_body:
         self.vbo = QOpenGLBuffer(QOpenGLBuffer.VertexBuffer)
         self.ebo = QOpenGLBuffer(QOpenGLBuffer.IndexBuffer)
 
+
     def get_vertices(self):
         return self.vertices
     
@@ -79,6 +108,11 @@ class OBJ_body:
     def isVisable(self):
         return self.Enable
 
+    def uppdate_vbo(self):
+        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, self.vertices.nbytes, self.vertices['vertices'])
+    
 if __name__ == "__main__":
     filepath ="reinforcement_learning/ui/test2.txt"
     component_1 = component(filepath)
+    print("runs")
